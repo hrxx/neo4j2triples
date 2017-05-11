@@ -1,5 +1,6 @@
 import os
 
+labelRelation = "ISA"
 
 def getRelations():
     os.system('echo "match (a)-[r]->(b) RETURN a.name, type(r), b.name;" > neo4j2triple.cypher')
@@ -30,16 +31,20 @@ def getProperties():
                 continue
             node = eles[1].strip()
             node = node[1:len(node)-1]
-            name_value = eles[2].strip()
-            name_value = name_value.split("->")
-            if len(name_value) != 2:
-                continue
-            name = name_value[0].strip()[1:]
-            value = name_value[1].strip()
-            value = value[:len(value)-1]
-            value = value[1:len(value)-1]
+            name_values = eles[2].strip()
+            if name_values[0] != '{':
+                continue # head or foot
+            name_values = name_values[1:len(name_values)-1]
+            name_values = name_values.split(",")
+            for name_value in name_values:
+                nv = name_value.split("->")
+                if len(nv) != 2:
+                    continue # todo: skip the text contain ,
+                name = nv[0].strip()
+                value = nv[1].strip()
+                value = value[1:len(value)-1]
 
-            print node, name, value
+                print node, name, value
 
     os.system('rm neo4j2triple-property.temp')
     os.system('rm neo4j2triple.cypher')
@@ -54,7 +59,7 @@ def getLabels():
                 continue
             node = eles[1].strip()
             node = node[1:len(node)-1]
-            name = "ISA"
+            name = labelRelation
             value = eles[2].strip()
             value = value[2:len(value)-2]
             print node, name, value
